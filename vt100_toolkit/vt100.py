@@ -1,5 +1,6 @@
 ####################################################################################################
 #
+# vt100_toolkit — A VT100 library
 # Copyright (C) 2026 Fabrice SALVAIRE
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
@@ -10,76 +11,18 @@
 See:
 - https://en.wikipedia.org/wiki/ANSI_escape_code
 - https://en.wikipedia.org/wiki/Windows_Terminal
-- ECMA-48
+- [ECMA-48](https://ecma-international.org/publications-and-standards/standards/ecma-48)
 - ISO/IEC 6429 Information technology — Control functions for coded character sets
 
 """
 
+# See also
+#   prompt_toolkit/output/vt100.py
+
 ####################################################################################################
-#
-# https://en.wikipedia.org/wiki/ANSI_escape_code
-# https://cdn.standards.iteh.ai/samples/12782/9d92ccb5b6694d6abcb9bbe7fa6c21d6/ISO-IEC-6429-1992.pdf
-#
-# https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-#
-#
-# Control Sequence Introducer (CSI) = ESC+[ = \x1B] = \x9B
-#
-# SGR - Select Graphic Rendition
-#   CSI n [;k] m
-#   Sets SGR parameters, including text color. After CSI can be zero
-#   or more parameters separated with ';'. With no parameters, CSI m is
-#   treated as CSI 0 m (reset / normal), which is typical of most of
-#   the ANSI escape sequences.
-#
-# SGR (Select Graphic Rendition)
-# parameters Code | Effect | Note
-# 0       Reset / Normal    | all attributes off
-# 1       Bright (increased intensity) or Bold
-# 2       Faint (decreased intensity)    | not widely supported
-# 3       Italic: on    | not widely supported. Sometimes treated as inverse.
-# 4       Underline: Single
-# 5       Blink: Slow    | less than 150 per minute
-# 6       Blink: Rapid    | MS-DOS ANSI.SYS; 150 per minute or more; not widely supported
-# 7       Image: Negative    | inverse or reverse; swap foreground and background
-# 8       Conceal    | not widely supported
-# 9       Crossed-out    | Characters legible, but marked for deletion. Not widely supported.
-# 10      Primary(default) font
-# 11-19   n-th alternate font    | Select the n-th alternate font. 14 being the fourth alternate font, up to 19 being the 9th alternate font.
-# 20      Fraktur    | hardly ever supported
-# 21      Bright/Bold: off or Underline: Double    | bold off not widely supported, double underline hardly ever
-# 22      Normal color or intensity    | neither bright, bold nor faint
-# 23      Not italic, not Fraktur
-# 24      Underline: None    | not singly or doubly underlined
-# 25      Blink: off
-# 26      Reserved
-# 27      Image: Positive
-# 28      Reveal    | conceal off
-# 29      Not crossed out
-# 30-37   Set text color    | 30 + x, where x is from the color table below
-# 38      Set xterm-256 text color    | next arguments are 5;x where x is color index (0..255)
-# 39      Default text color    | implementation defined (according to standard)
-# 40-47   Set background color    | 40 + x, where x is from the color table below
-# 48      Set xterm-256 background color    | next arguments are 5;x where x is color index (0..255)
-# 49      Default background color    | implementation defined (according to standard)
-# 50      Reserved
-# 51      Framed
-# 52      Encircled
-# 53      Overlined
-# 54      Not framed or encircled
-# 55      Not overlined
-# 56-59   Reserved
-# 60      ideogram underline or right side line    | hardly ever supported
-# 61      ideogram double underline or double line on the right side    | hardly ever supported
-# 62      ideogram overline or left side line    | hardly ever supported
-# 63      ideogram double overline or double line on the left side    | hardly ever supported
-# 64      ideogram stress marking    | hardly ever supported
-# 90-99   Set foreground color, high intensity    | aixterm (not in standard)
-# 100-109 Set background color, high intensity    | aixterm (not in standard)
-#
-#####################################################################################################
 
 from enum import IntEnum, StrEnum
+import re
 
 ####################################################################################################
 
@@ -170,10 +113,10 @@ class AnsiBackground(IntEnum):
 
 # https://en.wikipedia.org/wiki/C0_and_C1_control_codes
 
-# Control Sequence Introducer
+#: Control Sequence Introducer
 CSI = C0ControlCodes.ESCAPE + '['   # C1 = 0x9B
 
-# Operating System Command
+#: Operating System Command
 OSC = C0ControlCodes.ESCAPE + ']'   # C1 = 0x9D
 
 ####################################################################################################
@@ -185,6 +128,8 @@ def escape_ansi(sequence: str) -> str:
     ):
         sequence = sequence.replace(a, b)
     return sequence
+
+####################################################################################################
 
 def command(prefix: str, arg: str | int, code: str) -> str:
     if isinstance(arg, tuple):
@@ -216,6 +161,7 @@ def osc(*args) -> str:
 #             return CSI + _ + code
 #     raise ValueError()
 
+####################################################################################################
 
 def cursor_up(n: int = 1) -> str:
     return csi(n, 'A')
@@ -241,14 +187,14 @@ def cursor_horizontal_absolute(n: int = 1) -> str:
 def cursor_position(r: int = 1, c: int = 1) -> str:
     """Moves the cursor to row n, column m.
 
-    The values are 1-based, and default to 1 (top left corner) if
-    omitted. A sequence such as `CSI ;5H` is a synonym for `CSI 1;5H`
+    The values are 1-based, and default to 1 (top left corner) if omitted.
+    A sequence such as `CSI ;5H` is a synonym for `CSI 1;5H`
     as well as `CSI 17;H` is the same as `CSI 17H` and `CSI 17;1H`.
 
     """
     return csi((r, c), 'H')
 
-def clear_screen(mode: int = 2) -> str:
+def clear_screen(mode: str = 'entire') -> str:
     """Clears part of the screen.
 
     If n is 0 (or missing), clear from cursor to end of screen.
@@ -257,9 +203,18 @@ def clear_screen(mode: int = 2) -> str:
     If n is 3, clear entire screen and delete all lines saved in the scrollback buffer
     (this feature was added for xterm and is supported by other terminal applications).
     """
+    match mode:
+        case 'end':
+            mode = 0
+        case 'beginning':
+            mode = 1
+        case 'entire':
+            mode = 2
+        case 'scrollback':
+            mode = 3
     return csi(mode, 'J')
 
-def clear_line(mode: int = 2) -> str:
+def clear_line(mode: int = 'entire') -> str:
     """Erases part of the line.
 
     If n is 0 (or missing), clear from cursor to the end of the line.
@@ -267,6 +222,13 @@ def clear_line(mode: int = 2) -> str:
     If n is 2, clear entire line.
     Cursor position does not change.
     """
+    match mode:
+        case 'end':
+            mode = 0
+        case 'beginning':
+            mode = 1
+        case 'entire':
+            mode = 2
     return csi(mode, 'K')
 
 def scroll_up(n: int = 1) -> str:
@@ -294,9 +256,12 @@ SGR_RESET = sgr(0)
 # Reports the cursor position (CPR) by transmitting `ESC[n;mR`,
 # where n is the row and m is the column.
 REPORT_CURSOR_POSITION = csi(6, 'n')
+REPORT_CURSOR_RE = re.compile(r'^\x1b\[(\d*);(\d*)R')
 
 REPORT_FOREGROUND_COLOR = osc((10, '?'), C0ControlCodes.BELL)   # '\033]10;?\007'
 REPORT_BACKGROUND_COLOR = osc((11, '?'), C0ControlCodes.BELL)   # '\033]11;?\007'
+REPORT_COLOR_RE = re.compile(r'^\x1b\]\d\d;rgb:([a-f0-9]{4})/([a-f0-9]{4})/([a-f0-9]{4})')
+
 
 def set_title(title: str) -> str:
     # Doesn't work with Konsole
