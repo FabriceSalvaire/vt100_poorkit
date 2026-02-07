@@ -22,7 +22,8 @@ See: http://en.wikipedia.org/wiki/ANSI_escape_code
 
 from enum import Enum
 from pathlib import Path
-import colorsys
+import colorsys   # rgb_to_hls hls_to_rgb rgb_to_hsv hsv_to_rgb
+import math
 import os
 import sys
 import termios
@@ -40,35 +41,46 @@ type RGBColor = list[int, int, int]
 
 ####################################################################################################
 
-class Colours(Enum):
-    red = '#cc5555',
-    green = (0, 200, 0)
+def darken(color: RGBColor, amount: float) -> RGBColor:
+    h, s, v = colorsys.rgb_to_hsv(*color)
+    v = v * amount
+    v = min(max(math.ceil(v), 0), 255)
+    return [int(_) for _ in colorsys.hsv_to_rgb(h, s, v)]
+
+####################################################################################################
+
+class Colors(Enum):
+    red = '#cc5555'
+    green = 0, 200, 0
     blue = '#0000ff'
+    blue_light = darken((100, 100, 255), .8)
+
+####################################################################################################
 
 class Theme:
-    COLOURS = {
-        'red': '#cc5555',
-        'green': (0, 200, 0),
-        'blue': '#0000ff',
-    }
-    # colours = Colours
+    COLORS = Colors
+
+    ##############################################
+
+    def color(self, name: str) -> RGBColor:
+        try:
+            color = self.COLORS[name].value
+        except KeyError:
+            raise ValueError(f"Unknown color {name}")
+        if isinstance(color, str):
+            if color.startswith('#'):
+                return [int(color[_:_+2], 16) for _ in range(1, 6, 2)]
+            else:
+                raise NotImplementedError
+        elif isinstance(color, (tuple, list)):
+            return color[:3]
+        else:
+            raise ValueError(f"unsuported color {name} {color}")
 
     ##############################################
 
     def foreground(self, name: str) -> str:
-        # color = self.colours[name].value
-        color = self.COLOURS.get(name, None)
-        if color is None:
-            raise ValueError(f"Unknown foreground colour {name}")
-        if isinstance(color, str):
-            if color.startswith('#'):
-                rgb = [int(color[_:_+2], 16) for _ in range(1, 6, 2)]
-            else:
-                raise NotImplementedError
-        elif isinstance(color, (tuple, list)):
-            rgb = color[:3]
-        else:
-            raise ValueError(f"unsuported foreground style {name} {color}")
+        rgb = self.color(name)
         return vt100.sgr(38, 2, *rgb)
 
 ####################################################################################################
