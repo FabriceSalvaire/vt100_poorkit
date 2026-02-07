@@ -17,13 +17,13 @@ For **Windows user**, as opposite to UNIX paradigm, Windows implemented a Win32 
 terminal. However, Windows 11 provides now the **Windows Terminal** which supports the VT100
 protocol.  Thus, we can get rid of the VT100 / Win32 interface and only implements VT100.
 
-It features:
+**It features:**
 - ANSI Escape Sequence
 - True Colour RGB 8-bit
 - terminal clear screen or line and cursor position
 - **query terminal cursor position, size, foreground and background colour** (look at the code to see the UNIX TTY magic)
 
-It don't features:
+**It don't features:**
 - old WIN32 API support
 - old colour terminals
 - mouse support (look related packages)
@@ -51,21 +51,20 @@ is a bit opinionated.  [Textual](https://textual.textualize.io) is written by th
 
 - [Textualize/rich](https://github.com/Textualize/rich)
 
-  Python library for writing rich text (with color and style) to the terminal, and for displaying
+  Python library for writing rich text (with colour and style) to the terminal, and for displaying
   advanced content such as tables, markdown, and syntax highlighted code.
 
 - [Textualize/textual](https://github.com/Textualize/textual)
   
-  The lean application framework for Python. Build sophisticated user interfaces with a simple
-  Python API. Run your apps in the terminal and a web browser.
+  Build sophisticated user interfaces with a simple Python API. Run your applications in the
+  terminal and a web browser.
 
-  Rapid Application Development framework for Python.
   Amazing examples !
   Based on **Rich**
 
-- [Urwid](https://urwid.org)
+- [Urwid](https://urwid.org)<br>
   Console user interface library for Python
-- [thomasballinger/curtsies](https://github.com/thomasballinger/curtsies)
+- [thomasballinger/curtsies](https://github.com/thomasballinger/curtsies)<br>
   Curses-like terminal wrapper with a display based on compositing 2d arrays of text.
 - [npyscreen](https://www.npcole.com/npyscreen)
 
