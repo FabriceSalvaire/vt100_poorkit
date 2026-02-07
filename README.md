@@ -41,9 +41,10 @@ is limited for rich text.
 [Rich](https://rich.readthedocs.io/en/stable) is a kind of CSS engine for the terminal.  However, it
 is a bit opinionated.  [Textual](https://textual.textualize.io) is written by the same developer.
 
-**Currated Links:**
+**Curated Links:**
 - [prompt-toolkit/python-prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit)
-  Library for building powerful interactive command line applications in Python
+
+  Library for building powerful interactive command line applications in Python.
 
   [Terminal interface using prompt_toolkit? · Issue #8489 · ipython/ipython](https://github.com/ipython/ipython/issues/8489)<br>
   [Related projects](https://python-prompt-toolkit.readthedocs.io/en/3.0.52/pages/related_projects.html)
@@ -53,8 +54,7 @@ is a bit opinionated.  [Textual](https://textual.textualize.io) is written by th
   Python library for writing rich text (with color and style) to the terminal, and for displaying
   advanced content such as tables, markdown, and syntax highlighted code.
 
-- [Textual](https://textual.textualize.io)<br>
-  [Textualize/textual](https://github.com/Textualize/textual)
+- [Textualize/textual](https://github.com/Textualize/textual)
   
   The lean application framework for Python. Build sophisticated user interfaces with a simple
   Python API. Run your apps in the terminal and a web browser.
@@ -70,7 +70,7 @@ is a bit opinionated.  [Textual](https://textual.textualize.io) is written by th
 - [npyscreen](https://www.npcole.com/npyscreen)
 
 **Followings are well-known UNIX Libraries:**
-- [Curses Programming with Python — Python 3 documentation](https://docs.python.org/3/howto/curses.html)
+- [Curses Programming with Python — Python 3 documentation](https://docs.python.org/3/howto/curses.html)<br>
   [curses — Terminal handling for character-cell displays — Python 3 documentation](https://docs.python.org/3/library/curses.html#module-curses)
 - [The GNU Readline Library](https://tiswww.case.edu/php/chet/readline/rltop.html)
 
