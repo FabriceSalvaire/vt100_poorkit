@@ -1,5 +1,5 @@
-from vt100_toolkit.terminal import *
-from vt100_toolkit.vt100 import *
+from vt100_toolkit.terminal import Terminal
+from vt100_toolkit.vt100 import sgr, SGR_RESET, AnsiStyle, AnsiForeground
 
 terminal = Terminal(debug=True)
 # terminal.clear()
@@ -7,6 +7,7 @@ terminal = Terminal(debug=True)
 
 terminal.print('message')
 terminal.print(sgr(AnsiForeground.RED) + 'colour' + SGR_RESET)
+terminal.print(sgr(AnsiStyle.BLINK) + 'text' + sgr(AnsiStyle.NOT_BLINK) + ' text' + SGR_RESET)
 terminal.printc('<red>colour</>')
 terminal.printc('<red>red</> <green>green</> <blue_light>blue</>')
 terminal.print()

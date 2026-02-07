@@ -6,7 +6,7 @@
 #
 ####################################################################################################
 
-"""This module implements ANSI escape sequences.
+"""This module implements ANSI escape sequences, i.e. all the magical incantation.
 
 See:
 - https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -22,7 +22,10 @@ See:
 ####################################################################################################
 
 from enum import IntEnum, StrEnum
+from typing import IO
 import re
+
+from .types import RGBColor, Int2
 
 ####################################################################################################
 
@@ -46,12 +49,17 @@ class C0ControlCodes(StrEnum):
 
 class AnsiStyle(IntEnum):
     RESET = 0
+    #: Increased intensity
     BRIGHT = 1
+    #: Decreased intensity
     FAINT = 2
     ITALIC = 3
     UNDERLINE = 4
-    # SLOW_BLINK = 5
-    # RAPID_BLINK = 6
+    #: slow blinking
+    BLINK = 5
+    #: mainly unsupported
+    RAPID_BLINK = 6
+    #: Reverse Video
     INVERT = 7
     HIDE = 8
     STRIKE = 9
@@ -59,14 +67,51 @@ class AnsiStyle(IntEnum):
     # Alternative Font = 11 - 19
     # FRAKTUR = 20
     DOUBLY_UNDERLINED = 21
+    #: Normal intensity
     NORMAL = 22
-    # ...
+    #: Neither italic, nor blackletter
+    NOT_ITALIC = 23
+    NOT_UNDERLINE = 24
+    NOT_BLINK = 25
+    # Proportional spacing = 26
+    NOT_INVERT = 27
+    #: Reveal
+    NOT_HIDE = 28
+    NOT_STRIKE = 29
     # 30–37 Set foreground color
-    # 38    Set foreground color       Next arguments are 5;n or 2;r;g;b
-    # 39    Default foreground color   Implementation defined (according to standard)
+    FG_BLACK = 30
+    FG_RED = 31
+    FG_GREEN = 32
+    FG_YELLOW = 33
+    FG_BLUE = 34
+    FG_MAGENTA = 35
+    FG_CYAN = 36
+    FG_WHITE = 37
+    #: Set foreground color
+    #    Next arguments are 5;n or 2;r;g;b
+    FOREGROUND = 38
+    #: Default foreground color
+    #    Implementation defined (according to standard)
+    FG_DEFAULT = 39
     # 40–47 Set background color
-    # 48    Set background color       Next arguments are 5;n or 2;r;g;b
-    # 49    Default background color   Implementation defined (according to standard)
+    BG_BLACK = 40
+    BG_RED = 41
+    BG_GREEN = 42
+    BG_YELLOW = 43
+    BG_BLUE = 44
+    BG_MAGENTA = 45
+    BG_CYAN = 46
+    BG_WHITE = 47
+    #: Set background color
+    #    Next arguments are 5;n or 2;r;g;b
+    BACKGROUND = 48
+    #: Default background color
+    #    Implementation defined (according to standard)
+    BG_DEFAULT = 49
+    # Disable proportional spacing = 50
+    # ...
+    # Set bright foreground color = 90 - 97
+    # Set bright background color = 100 - 107
 
 class AnsiForeground(IntEnum):
     BLACK = 30
@@ -77,17 +122,17 @@ class AnsiForeground(IntEnum):
     MAGENTA = 35
     CYAN = 36
     WHITE = 37
-    RESET = 39
+    DEFAULT = 39
 
     # These are fairly well supported, but not part of the standard.
-    LIGHTBLACK_EX = 90
-    LIGHTRED_EX = 91
-    LIGHTGREEN_EX = 92
-    LIGHTYELLOW_EX = 93
-    LIGHTBLUE_EX = 94
-    LIGHTMAGENTA_EX = 95
-    LIGHTCYAN_EX = 96
-    LIGHTWHITE_EX = 97
+    BRIGHT_BLACK = 90
+    BRIGHT_RED = 91
+    BRIGHT_GREEN = 92
+    BRIGHT_YELLOW = 93
+    BRIGHT_BLUE = 94
+    BRIGHT_MAGENTA = 95
+    BRIGHT_CYAN = 96
+    BRIGHT_WHITE = 97
 
 class AnsiBackground(IntEnum):
     BLACK = 40
@@ -98,17 +143,17 @@ class AnsiBackground(IntEnum):
     MAGENTA = 45
     CYAN = 46
     WHITE = 47
-    RESET = 49
+    DEFAULT = 49
 
     # These are fairly well supported, but not part of the standard.
-    LIGHTBLACK_EX = 100
-    LIGHTRED_EX = 101
-    LIGHTGREEN_EX = 102
-    LIGHTYELLOW_EX = 103
-    LIGHTBLUE_EX = 104
-    LIGHTMAGENTA_EX = 105
-    LIGHTCYAN_EX = 106
-    LIGHTWHITE_EX = 107
+    BRIGHT_BLACK = 100
+    BRIGHT_RED = 101
+    BRIGHT_GREEN = 102
+    BRIGHT_YELLOW = 103
+    BRIGHT_BLUE = 104
+    BRIGHT_MAGENTA = 105
+    BRIGHT_CYAN = 106
+    BRIGHT_WHITE = 107
 
 
 # https://en.wikipedia.org/wiki/C0_and_C1_control_codes
@@ -245,13 +290,20 @@ def cursor_hv_position(n: int = 1, m: int = 1) -> str:
     """
     return csi((n, m), 'f')
 
+####################################################################################################
 
 def sgr(*args) -> str:
     """Select Graphic Rendition"""
     return csi(args, 'm')
 
 
-SGR_RESET = sgr(0)
+SGR_RESET = sgr(AnsiStyle.RESET)
+
+def foreground(rgb: RGBColor) -> str:
+    return sgr(AnsiStyle.FOREGROUND, 2, *rgb)
+
+
+####################################################################################################
 
 # Reports the cursor position (CPR) by transmitting `ESC[n;mR`,
 # where n is the row and m is the column.
@@ -262,6 +314,33 @@ REPORT_FOREGROUND_COLOR = osc((10, '?'), C0ControlCodes.BELL)   # '\033]10;?\007
 REPORT_BACKGROUND_COLOR = osc((11, '?'), C0ControlCodes.BELL)   # '\033]11;?\007'
 REPORT_COLOR_RE = re.compile(r'^\x1b\]\d\d;rgb:([a-f0-9]{4})/([a-f0-9]{4})/([a-f0-9]{4})')
 
+def cursor_callback(stdin: IO) -> Int2:
+    buffer = stdin.read(until='R')
+    # reading the actual values, but what if a keystroke appears while reading from stdin?
+    # As dirty work around, returns None if this fails
+    try:
+        # buffer is \x1b[10;20R
+        matches = REPORT_CURSOR_RE.match(buffer)
+        position = [int(_) for _ in matches.groups()]
+    except AttributeError:
+        position = None
+    return position
+
+def color_callback(stdin: IO) -> RGBColor:
+    buffer = stdin.read(until=C0ControlCodes.BELL)
+    # len(buffer) == 24
+    # See cursor_position read_callback
+    try:
+        #              123456789 123456789 123
+        # buffer is \x1b]11;rgb:2323/2626/2727\a
+        #               ]10;rgb:fcfc/fcfc/fcfc\a
+        matches = REPORT_COLOR_RE.match(buffer)
+        color = [int(_[:2], 16) for _ in matches.groups()]
+    except AttributeError:
+        color = None
+    return color
+
+####################################################################################################
 
 def set_title(title: str) -> str:
     # Doesn't work with Konsole

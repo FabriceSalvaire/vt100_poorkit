@@ -26,18 +26,14 @@ import colorsys   # rgb_to_hls hls_to_rgb rgb_to_hsv hsv_to_rgb
 import math
 import os
 import sys
-import termios
-import tty
 
+from .types import Int2, RGBColor
 from . import vt100
+from . import vt100_io
 
 ####################################################################################################
 
 LINESEP = os.linesep
-
-type Int2 = list[int, int]
-type Int3 = list[int, int, int]
-type RGBColor = list[int, int, int]
 
 ####################################################################################################
 
@@ -81,7 +77,7 @@ class Theme:
 
     def foreground(self, name: str) -> str:
         rgb = self.color(name)
-        return vt100.sgr(38, 2, *rgb)
+        return vt100.foreground(rgb=rgb)
 
 ####################################################################################################
 
@@ -116,65 +112,23 @@ class Terminal:
 
     ##############################################
 
-    def _read_tty(self, until_chr: str) -> str:
-        # It only works if the terminal is set in `cbreak` mode
-        # See `query` method
-        buffer = ''
-        while True:
-            buffer += sys.stdin.read(1)
-            if buffer[-1] == until_chr:
-                break
-        if self._debug:
-            self._debug_tty_read(buffer)
-        return buffer
-
-    ##############################################
-
     def query(self, command: str, read_callback) -> None:
-        # Fixme: use ContextManager see curtsies
-        #   https://github.com/thomasballinger/curtsies/blob/master/curtsies/termhelpers.py
-        stdin = sys.stdin.fileno()
-        # same as
-        # stdin = Path('/dev/tty').open('r')
-        # save tty attributes
-        # https://docs.python.org/3.14/library/tty.html
-        # https://docs.python.org/3.14/library/termios.html
-        terminal_attribute = termios.tcgetattr(stdin)
-        try:
-            # TCSANOW means change NOW
-            # clears the ECHO and ICANON local mode flags
-            # as well as setting the minimum input to 1 byte with no delay
-            tty.setcbreak(stdin, termios.TCSANOW)
+        with vt100_io.TerminalInput(debug=self._debug) as stdin:
             self.send(command)
             self._stdout.flush()
-            read_callback()
-        finally:
-            # restore tty attributes
-            termios.tcsetattr(stdin, termios.TCSANOW, terminal_attribute)
+            read_callback(stdin)
 
     ##############################################
-
-    def _debug_tty_read(self, buffer: str) -> None:
-        _ = vt100.escape_ansi(buffer)
-        print(f"Received from TTY '{_}'")
 
     @property
     def cursor_position(self) -> list[int, int]:
         position = []
 
-        def read_callback():
-            buffer = self._read_tty('R')
-            # reading the actual values, but what if a keystroke appears while reading from stdin?
-            # As dirty work around, returns None if this fails
+        def callback(stdin):
             nonlocal position
-            try:
-                # buffer is \x1b[10;20R
-                matches = vt100.REPORT_CURSOR_RE.match(buffer)
-                position = [int(_) for _ in matches.groups()]
-            except AttributeError:
-                position = None
+            position = vt100.cursor_callback(stdin)
 
-        self.query(vt100.REPORT_CURSOR_POSITION, read_callback)
+        self.query(vt100.REPORT_CURSOR_POSITION, callback)
         return position
 
     @property
@@ -194,21 +148,11 @@ class Terminal:
     def _report_color(self, command: str) -> RGBColor:
         color = []
 
-        def read_callback():
-            buffer = self._read_tty(vt100.C0ControlCodes.BELL)
-            # len(buffer) == 24
-            # See cursor_position read_callback
+        def callback(stdin):
             nonlocal color
-            try:
-                #              123456789 123456789 123
-                # buffer is \x1b]11;rgb:2323/2626/2727\a
-                #               ]10;rgb:fcfc/fcfc/fcfc\a
-                matches = vt100.REPORT_COLOR_RE.match(buffer)
-                color = [int(_[:2], 16) for _ in matches.groups()]
-            except AttributeError:
-                color = None
+            color = vt100.color_callback(stdin)
 
-        self.query(command, read_callback)
+        self.query(command, callback)
         return color
 
     @property
