@@ -296,12 +296,14 @@ def sgr(*args) -> str:
     """Select Graphic Rendition"""
     return csi(args, 'm')
 
-
-SGR_RESET = sgr(AnsiStyle.RESET)
-
 def foreground(rgb: RGBColor) -> str:
     return sgr(AnsiStyle.FOREGROUND, 2, *rgb)
 
+def background(rgb: RGBColor) -> str:
+    return sgr(AnsiStyle.BACKGROUND, 2, *rgb)
+
+
+SGR_RESET = sgr(AnsiStyle.RESET)
 
 ####################################################################################################
 
@@ -318,27 +320,23 @@ def cursor_callback(stdin: IO) -> Int2:
     buffer = stdin.read(until='R')
     # reading the actual values, but what if a keystroke appears while reading from stdin?
     # As dirty work around, returns None if this fails
-    try:
-        # buffer is \x1b[10;20R
-        matches = REPORT_CURSOR_RE.match(buffer)
-        position = [int(_) for _ in matches.groups()]
-    except AttributeError:
-        position = None
-    return position
+    # buffer is \x1b[10;20R
+    matches = REPORT_CURSOR_RE.match(buffer)
+    if matches is not None:
+        return [int(_) for _ in matches.groups()]
+    return None
 
 def color_callback(stdin: IO) -> RGBColor:
     buffer = stdin.read(until=C0ControlCodes.BELL)
     # len(buffer) == 24
-    # See cursor_position read_callback
-    try:
-        #              123456789 123456789 123
-        # buffer is \x1b]11;rgb:2323/2626/2727\a
-        #               ]10;rgb:fcfc/fcfc/fcfc\a
-        matches = REPORT_COLOR_RE.match(buffer)
-        color = [int(_[:2], 16) for _ in matches.groups()]
-    except AttributeError:
-        color = None
-    return color
+    # See cursor_callback
+    #              123456789 123456789 123
+    # buffer is \x1b]11;rgb:2323/2626/2727\a
+    #               ]10;rgb:fcfc/fcfc/fcfc\a
+    matches = REPORT_COLOR_RE.match(buffer)
+    if matches is not None:
+        return [int(_[:2], 16) for _ in matches.groups()]
+    return None
 
 ####################################################################################################
 

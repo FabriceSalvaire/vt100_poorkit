@@ -21,26 +21,6 @@ from . import vt100
 
 ####################################################################################################
 
-def read(read_callback: Callable) -> None:
-    stdin = sys.stdin.fileno()
-    # same as
-    # stdin = Path('/dev/tty').open('r')
-    # save tty attributes
-    # https://docs.python.org/3.14/library/tty.html
-    # https://docs.python.org/3.14/library/termios.html
-    terminal_attribute = termios.tcgetattr(stdin)
-    try:
-        # TCSANOW means change NOW
-        # clears the ECHO and ICANON local mode flags
-        # as well as setting the minimum input to 1 byte with no delay
-        tty.setcbreak(stdin, termios.TCSANOW)
-        read_callback()
-    finally:
-        # restore tty attributes
-        termios.tcsetattr(stdin, termios.TCSANOW, terminal_attribute)
-
-####################################################################################################
-
 class TerminalInput:
 
     # See also
