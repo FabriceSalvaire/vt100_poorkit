@@ -45,7 +45,7 @@ is a bit opinionated.  [Textual](https://textual.textualize.io) is written by th
 - [prompt-toolkit/python-prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit)
   Library for building powerful interactive command line applications in Python
 
-  [Terminal interface using prompt_toolkit? · Issue #8489 · ipython/ipython](https://github.com/ipython/ipython/issues/8489)
+  [Terminal interface using prompt_toolkit? · Issue #8489 · ipython/ipython](https://github.com/ipython/ipython/issues/8489)<br>
   [Related projects](https://python-prompt-toolkit.readthedocs.io/en/3.0.52/pages/related_projects.html)
 
 - [Textualize/rich](https://github.com/Textualize/rich)
@@ -53,7 +53,7 @@ is a bit opinionated.  [Textual](https://textual.textualize.io) is written by th
   Python library for writing rich text (with color and style) to the terminal, and for displaying
   advanced content such as tables, markdown, and syntax highlighted code.
 
-- [Textual](https://textual.textualize.io)
+- [Textual](https://textual.textualize.io)<br>
   [Textualize/textual](https://github.com/Textualize/textual)
   
   The lean application framework for Python. Build sophisticated user interfaces with a simple
