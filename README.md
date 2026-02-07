@@ -1,29 +1,45 @@
-This — experimental — Python packages provides an API to support **VT100 Terminal**, aka UNIX terminal or console.
+This Python packages provides an API to support **VT100 Terminal**, aka UNIX terminal or console.
 
-I strongly recommend to look at
-**[prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit)** (or alternatives) to
-build sophisticated console user interface application.
+VT100 is a seventies computer standard for [terminal](https://en.wikipedia.org/wiki/VT100).  VT100
+is a kind of prehistoric CSS.  It is still useful when you are too lazy to write a Qt QML or web
+application, or you want to run your application in a SSH shell session.
 
-In comparison to prompt-toolkit, this package implements new things or differently...
+I strongly recommend to look at the related packages (e.g. **prompt_toolkit**, **rich**) if you want
+to build a sophisticated terminal user interface application.
+
+In comparison to the related packages, this package implements new things or differently... Well it
+is a bunch of opinionated codes to provide an alternative to opinionated codes...
 
 There are also many ANSI Escape Sequence libraries like
-[colorama](https://github.com/tartley/colorama) but they are usually limited to basic things.
+[colorama](https://github.com/tartley/colorama) but they are usually limited to basic features.
+
+For **Windows user**, as opposite to UNIX paradigm, Windows implemented a Win32 API to manage the
+terminal. However, Windows 11 provides now the **Windows Terminal** which supports the VT100
+protocol.  Thus, we can get rid of the VT100 / Win32 interface and only implements VT100.
 
 It features:
 - ANSI Escape Sequence
-- True Color printing
+- True Colour RGB 8-bit
 - terminal clear screen or line and cursor position
 - **query terminal cursor position, size, foreground and background colour** (look at the code to see the UNIX TTY magic)
 
-This code was tested on Linux KDE **Konsole** terminal.
+It don't features:
+- old WIN32 API support
+- old colour terminals
+- mouse support (look related packages)
 
-For **Windows user**, as opposite to UNIX paradigm, Windows implements a Win32 API to manage the
-terminal. However, Windows 11 provides now the **Windows Terminal** which supports the VT100
-protocol.
+This code was (only) tested on Linux KDE **Konsole** terminal.
 
-# Relates packages
+# Related packages
 
 ## Terminal UI Applications
+
+[Python Prompt Toolkit](https://python-prompt-toolkit.readthedocs.io) (prompt_toolkit) is cool if
+you want to implement a Command Line Interface (CLI) like IPyton, featuring completion.  However, it
+is limited for rich text.
+
+[Rich](https://rich.readthedocs.io/en/stable) is a kind of CSS engine for the terminal.  However, it
+is a bit opinionated.  [Textual](https://textual.textualize.io) is written by the same developer.
 
 - [prompt-toolkit/python-prompt-toolkit: Library for building powerful interactive command line applications in Python](https://github.com/prompt-toolkit/python-prompt-toolkit)
   [Terminal interface using prompt_toolkit? · Issue #8489 · ipython/ipython](https://github.com/ipython/ipython/issues/8489)
@@ -44,6 +60,7 @@ protocol.
 - [thomasballinger/curtsies: Curses-like terminal wrapper with a display based on compositing 2d arrays of text.](https://github.com/thomasballinger/curtsies)
 - [npyscreen](https://www.npcole.com/npyscreen)
 
+**Followings are well-known UNIX Libraries:**
 - [Curses Programming with Python — Python 3 documentation](https://docs.python.org/3/howto/curses.html)
   [curses — Terminal handling for character-cell displays — Python 3 documentation](https://docs.python.org/3/library/curses.html#module-curses)
 - [The GNU Readline Library](https://tiswww.case.edu/php/chet/readline/rltop.html)
