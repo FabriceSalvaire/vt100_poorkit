@@ -42,13 +42,16 @@ is limited for rich text.
 is a bit opinionated.  [Textual](https://textual.textualize.io) is written by the same developer.
 
 - [prompt-toolkit/python-prompt-toolkit: Library for building powerful interactive command line applications in Python](https://github.com/prompt-toolkit/python-prompt-toolkit)
+
   [Terminal interface using prompt_toolkit? · Issue #8489 · ipython/ipython](https://github.com/ipython/ipython/issues/8489)
   [Related projects](https://python-prompt-toolkit.readthedocs.io/en/3.0.52/pages/related_projects.html)
 
 - [Rich](https://rich.readthedocs.io/en/stable)
   Python library for writing rich text (with color and style) to the terminal, and for displaying
   advanced content such as tables, markdown, and syntax highlighted code.
+
   [Textualize/rich: Rich is a Python library for rich text and beautiful formatting in the terminal.](https://github.com/Textualize/rich)
+
 - [Textual](https://textual.textualize.io)
   [Textualize/textual: The lean application framework for Python. Build sophisticated user interfaces with a simple Python API. Run your apps in the terminal and a web browser.](https://github.com/Textualize/textual)
   Rapid Application Development framework for Python.
