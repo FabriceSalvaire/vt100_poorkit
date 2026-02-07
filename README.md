@@ -41,26 +41,32 @@ is limited for rich text.
 [Rich](https://rich.readthedocs.io/en/stable) is a kind of CSS engine for the terminal.  However, it
 is a bit opinionated.  [Textual](https://textual.textualize.io) is written by the same developer.
 
-- [prompt-toolkit/python-prompt-toolkit: Library for building powerful interactive command line applications in Python](https://github.com/prompt-toolkit/python-prompt-toolkit)
+**Currated Links:**
+- [prompt-toolkit/python-prompt-toolkit](https://github.com/prompt-toolkit/python-prompt-toolkit)
+  Library for building powerful interactive command line applications in Python
 
   [Terminal interface using prompt_toolkit? · Issue #8489 · ipython/ipython](https://github.com/ipython/ipython/issues/8489)
   [Related projects](https://python-prompt-toolkit.readthedocs.io/en/3.0.52/pages/related_projects.html)
 
-- [Rich](https://rich.readthedocs.io/en/stable)
+- [Textualize/rich](https://github.com/Textualize/rich)
+
   Python library for writing rich text (with color and style) to the terminal, and for displaying
   advanced content such as tables, markdown, and syntax highlighted code.
 
-  [Textualize/rich: Rich is a Python library for rich text and beautiful formatting in the terminal.](https://github.com/Textualize/rich)
-
 - [Textual](https://textual.textualize.io)
-  [Textualize/textual: The lean application framework for Python. Build sophisticated user interfaces with a simple Python API. Run your apps in the terminal and a web browser.](https://github.com/Textualize/textual)
+  [Textualize/textual](https://github.com/Textualize/textual)
+  
+  The lean application framework for Python. Build sophisticated user interfaces with a simple
+  Python API. Run your apps in the terminal and a web browser.
+
   Rapid Application Development framework for Python.
   Amazing examples !
   Based on **Rich**
 
 - [Urwid](https://urwid.org)
   Console user interface library for Python
-- [thomasballinger/curtsies: Curses-like terminal wrapper with a display based on compositing 2d arrays of text.](https://github.com/thomasballinger/curtsies)
+- [thomasballinger/curtsies](https://github.com/thomasballinger/curtsies)
+  Curses-like terminal wrapper with a display based on compositing 2d arrays of text.
 - [npyscreen](https://www.npcole.com/npyscreen)
 
 **Followings are well-known UNIX Libraries:**
